@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "uv run .github/hooks/scripts/post-edit-lint.py",
+        "powershell": "uv run .github/hooks/scripts/post-edit-lint.py",
+        "timeoutSec": 30
+      }
+    ]
+  }
+}

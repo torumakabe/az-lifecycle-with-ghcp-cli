@@ -1,0 +1,2 @@
+# Hook scripts — line ending control
+hooks/*.py  text eol=lf diff=python

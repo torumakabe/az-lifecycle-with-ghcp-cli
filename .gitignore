@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Python ツールキャッシュ
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 環境変数
+.env
+.env.*
+
+# Backup files
+*_backup.*
+
+# Temporary files
+tmp/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Azure — Bicep コンパイル結果（ARM テンプレート JSON）
+infra/*.json
+!infra/main.parameters.json
