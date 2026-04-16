@@ -86,6 +86,18 @@ Copilot CLI の bash は非 TTY のため、`azd up` / `azd provision` 実行時
 
 デフォルト値 `pending` は検証通過のためだけに存在し、preprovision フックが実行後に実際の値で上書きする。Bicep デプロイには上書き後の値が使われる。
 
+### `azd env set` で制御するパラメータのマッピング
+
+Bicep パラメータにデフォルト値がある場合でも、`azd env set` で値を上書きしたい場合は `main.parameters.json` にマッピングが必要。マッピングがないと、`azd env set` で設定した値は Bicep に渡らず、常に Bicep 側のデフォルト値が使われる。
+
+```json
+{
+  "enableDatabasePublicAccess": { "value": "${enableDatabasePublicAccess=false}" }
+}
+```
+
+**よくある誤解**: 「Bicep にデフォルト値があるから `main.parameters.json` に書かなくてよい」→ Bicep 単体ではその通りだが、`azd env set` による実行時の上書きが効かなくなる。`azd env set` での制御を想定するパラメータは、Bicep のデフォルト値と同じ値を `main.parameters.json` のデフォルトに設定しておくこと。
+
 ### `.bicepparam` を選ぶべきケース（参考）
 
 - パラメータ値に式やロジックが必要な場合（`toLower()`, 条件分岐等）

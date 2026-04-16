@@ -1,4 +1,4 @@
-# ラボ2: IaCコード生成とDesign Snapshot — ADRからBicepへ
+# ラボ2: IaCコード生成とDesign Snapshot
 **テーマ**: ADRに基づくIaC生成と、アーキテクチャ概要のスナップショット出力
 
 ## 前提条件
@@ -93,11 +93,7 @@ Plan モード（`Shift+Tab` → Plan を選択）に切り替えてから入力
 アーキテクチャ概要説明書を作って
 ```
 
-`architecture-snapshot` カスタムエージェントが自動選択されるはずだが、されない場合は以下で直接選択する。カスタムエージェントとの会話に入るため、作業が終わったら `/agent` で既定に戻すこと。
-
-```
-/agent architecture-snapshot
-```
+`architecture-snapshot` カスタムエージェントが自動選択されるはずだが、されない場合は `/agent` で表示されるリストから `architecture-snapshot` を選択する。カスタムエージェントとの会話に入るため、作業が終わったら `/agent` で既定に戻すこと。
 
 **期待する結果:**
 
