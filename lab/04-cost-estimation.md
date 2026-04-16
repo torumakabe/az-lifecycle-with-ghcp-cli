@@ -70,3 +70,7 @@ App Service Plan を比較して。月額コストの差と、スペックの違
 - **SKU 比較**: コストと機能を表形式で比較
 - **Excel 出力**: 見積もり結果を `docs/` に保存
 - **IaC 起点**: Bicep の定義からコストを算出
+
+---
+
+**次のラボ:** [ラボ5: PowerPoint スライドの生成](./05-presentation-generation.md)
