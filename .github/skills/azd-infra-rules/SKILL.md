@@ -25,6 +25,7 @@ description: "azd 前提の IaC ルール。Bicep、azure.yaml、hooks をまた
 - **`environmentName` は用途を示す短い名前にする** — `poc`、`dev`、`prod` など。リソース名が `{prefix}-${workloadName}-${environmentName}`（例: `app-myproj-poc`）で構成されるため、ディレクトリ名のデフォルトではなく `azd init -e poc` のように明示的に指定する
 - **グローバル一意が必要なリソースには `resourceToken` サフィックスを付ける** — `uniqueString(subscription().subscriptionId, environmentName, location)` の先頭5文字を App Service・PostgreSQL などホスト名がグローバル一意なリソースに付与する。RG・Log Analytics など一意性が不要なリソースには付けない
 - **パラメータ ファイルは `main.parameters.json` を優先** — この repo では azd テンプレートとの一貫性と `@minLength` との相性を優先する
+- **`azd env set` で制御するパラメータは `main.parameters.json` にマッピング必須** — Bicep パラメータにデフォルト値があっても、`main.parameters.json` に `"${VAR_NAME=default}"` エントリがなければ `azd env set` の値は Bicep に渡らない。`azd env set` での上書きを想定するパラメータは必ずマッピングを追加すること
 - **Bicep outputs を hooks / `azure.yaml` の契約として扱う** — フックが参照する値は `main.bicep` の `output` に明示する
 - **VNet・App Service VNet 統合・PostgreSQL PE は常に作成する** — PoC でも本番でもネットワーク構成は同じ。App Service → PostgreSQL は常に PE 経由のプライベート接続とする。PoC で性能基礎値を測るには本番と同じ通信経路が必要なため
 - **PostgreSQL の DB パブリックアクセスは `enableDatabasePublicAccess` の単一 bool で制御** — `true`（PoC）: PE に加えてパブリックアクセスも有効にし、開発者が psql で直接接続できるようにする。`false`（本番）: パブリックアクセス無効、PE のみ。`enableVnetIntegration` と `postgresPublicAccess` を独立パラメータにしない。**デフォルト値は `false`（Secure-by-default）** — PoC では `azd env set enableDatabasePublicAccess true` で明示的に有効化する

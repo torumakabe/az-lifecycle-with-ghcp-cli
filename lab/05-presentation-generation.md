@@ -1,4 +1,4 @@
-# ラボ5: Excel/PowerPointの読み書き — azure-pptx Skill
+# ラボ5: PowerPoint スライドの生成
 **テーマ**: Skill を活用して Azure テンプレート準拠の PowerPoint スライドを生成し、ADR の設計判断を反映する
 
 ## 前提条件
