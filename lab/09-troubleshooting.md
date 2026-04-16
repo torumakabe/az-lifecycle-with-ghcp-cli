@@ -99,3 +99,7 @@
 - Copilot CLI は、調査 → 原因特定 → 修正 → 確認を支援してくれる
 - Azure MCP Server による設定取得、HTTP リクエストによるエラー再現、原因分析を Copilot CLI が自律的に組み合わせる
 - 従来のように Azure Portal でログを探し、ドキュメントを調べ、CLI コマンドを手打ちする手順と比較してみよう
+
+---
+
+**次のラボ:** [ラボ10: (別軸) Bicep API バージョンの最新化](./10-bicep-api-version-update.md)

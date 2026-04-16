@@ -114,3 +114,7 @@ Plan モード（`Shift+Tab` → Plan を選択）に切り替えてから入力
 - **マルチモデル並列レビュー** — 1プロンプトで複数モデルの出力を比較
 - **azd 構成も ADR から生成** — `azure.yaml` を含む
 - **アーキテクチャ概要はスナップショット出力** — IaC + ADR から生成（`architecture-snapshot` エージェント）
+
+---
+
+**次のラボ:** [ラボ3: Azure構成図の生成](./03-architecture-diagram.md)
