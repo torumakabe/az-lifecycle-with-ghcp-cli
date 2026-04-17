@@ -154,7 +154,7 @@ output AZURE_RESOURCE_GROUP string = rg.name
 
 ## App Service SKU
 
-Python を App Service でリモートビルドする際には、ビルドがタイムアウトしないよう Premium V3（P0v3 以上）を基本とする。
+Python を App Service でリモートビルドする際には、ビルドがタイムアウトしないよう Premium プランを基本とする。
 
 ## App Service Python の可観測性
 
@@ -200,6 +200,31 @@ dependencies = [
 App Service はデプロイ時のリモートビルドでインストールされた OTel インストルメンテーションパッケージを自動検出する。アプリコードの変更は不要。
 
 > **背景**: Microsoft Learn の「[Monitor Azure App Service](https://learn.microsoft.com/azure/azure-monitor/app/monitor-azure-app-service)」に記載:「*To collect telemetry from other libraries, add supported OpenTelemetry community instrumentation packages to your app's requirements.txt file. App Service detects installed instrumentations automatically.*」
+
+### psycopg v3 の async は自動計装と非互換になりやすい
+
+**事象**: `psycopg.AsyncConnection` でクエリを実行すると、App Service のワーカーが `AttributeError: 'CursorTracer' object has no attribute 'traced_execution_async'` を投げて失敗する。
+
+**原因**: App Service Linux の自動計装エージェントはエージェント側にバンドルされた `opentelemetry-instrumentation-dbapi` を先にロードする。pip 側でインストールした新しい `opentelemetry-instrumentation-psycopg`（0.50b0+）は親クラスに `traced_execution_async` があることを前提にしているが、バンドル版 dbapi が古く、このメソッドが存在しない。結果として async パスが全滅する。
+
+**回避策（推奨）**: `psycopg.AsyncConnection` を使わず、**同期 `psycopg.connect` を `asyncio.to_thread` でラップ**する。sync 側の `traced_execution` は古いバンドル dbapi にも存在するため、DB 依存関係テレメトリが取得できる。
+
+```python
+import asyncio
+import psycopg
+import psycopg.conninfo  # サブモジュールを明示 import しないと make_conninfo が参照できない
+
+def _query_sync(conninfo: str) -> tuple:
+    with psycopg.connect(conninfo, connect_timeout=5) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT version(), current_database(), current_user, now()")
+            return cur.fetchone()
+
+async def check_db(conninfo: str) -> tuple:
+    return await asyncio.to_thread(_query_sync, conninfo)
+```
+
+**非推奨**: `OTEL_PYTHON_DISABLED_INSTRUMENTATIONS=psycopg` で無効化する方法は一見動作するが、DB 依存関係テレメトリ自体が失われるため恒久策にしない。
 
 ## App Service Python アプリのデプロイ
 

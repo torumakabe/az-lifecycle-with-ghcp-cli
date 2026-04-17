@@ -32,7 +32,7 @@ description: "azd 前提の IaC ルール。Bicep、azure.yaml、hooks をまた
 - **Azure Policy が管理するリソース構成と競合させない** — サブスクリプションやマネジメントグループの Azure Policy がリソース構成（診断設定、タグ、ネットワーク制限など）を強制している場合、Bicep の定義を Policy に合わせる。Policy と矛盾するテンプレートはデプロイ失敗または意図しないドリフトを引き起こす
 - **Bicep でリソースを追加したら診断設定を必ず作成する** — 対象リソースごとに `Microsoft.Insights/diagnosticSettings` を作成し、ログとメトリクス（`AllMetrics`）を Log Analytics ワークスペースに送信する。ログカテゴリは対象リソースの Microsoft Learn ドキュメントで確認すること
 - **ログの取り込みコスト削減が求められる場合は Basic テーブルプランと診断設定のカテゴリ絞り込みを検討する** — 詳細は [references/azd-infra-rules.md](references/azd-infra-rules.md) の「ログ取り込みコストの最適化」セクションを参照
-- **App Service は Premium V3（P0v3 以上）を原則とする** — リモートビルドのタイムアウト回避と本番同等の性能基礎値取得のため。Basic / Standard は使わない
+- **App Service は Premium プランを原則とする** — リモートビルドのタイムアウト回避と本番同等の性能基礎値取得のため。Basic / Standard は使わない
 - **DB パブリックアクセス無効の構成ではフック到達性に注意する** — `enableDatabasePublicAccess: false` でも、azd を実行する端末が VNet にアクセスできていれば postprovision フックは成功する。到達できない場合はフックが警告を出して正常終了し、VNet 内から別途プリンシパルを作成する。実際の作成手順は [azd-hooks スキル](../azd-hooks/SKILL.md) を参照
 
 ## PostgreSQL Flexible Server の repo 固有メモ
