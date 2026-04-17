@@ -26,6 +26,7 @@ GitHub Copilot CLI が Azure のライフサイクル全体（設計・構築・
 |---|---|
 | `infra/**/*.bicep` | `.github/skills/azd-infra-rules/` |
 | `hooks/**/*.py`, `azure.yaml` | `.github/skills/azd-infra-rules/` + `.github/skills/azd-hooks/` |
+| `src/verification-app/**`、App Service Python アプリの自動計装／DB 依存テレメトリを扱うとき | `.github/skills/azd-infra-rules/`（references の「App Service Python の可観測性」） |
 | `**/*.pptx` | `.github/skills/azure-pptx/` |
 | `**/*.drawio` | `.github/skills/azure-drawio/` |
 
@@ -44,3 +45,11 @@ GitHub Copilot CLI が Azure のライフサイクル全体（設計・構築・
 ## 事実検証
 
 ドキュメントが「ADR-NNN で決定済み」等と主張している場合、`docs/adr/`・`docs/features/`・`infra/`・`src/` で実在を検証すること。
+
+## デプロイ失敗時の切り分け順序
+
+`azd up` / `azd deploy` やランタイム（`/check-db` 等）でエラーが起きたら、以下の順序で原因を疑う。自分のコードを疑う前に、プラットフォーム側の前提を先に確認する。
+
+1. **到達性** — ファイアウォール規則 / Private Endpoint / VNet 統合。とくに `enableDatabasePublicAccess=true` でも CLI 実行元 IP は自動許可されない点に注意（[azd-hooks スキル](skills/azd-hooks/SKILL.md) 不変条件 #8 を参照）
+2. **バージョン不整合** — App Service バンドルのランタイムや自動計装 (autoinstrumentation) エージェントと、`pyproject.toml` 側のパッケージバージョンの組み合わせ。特に `opentelemetry-instrumentation-*` は要注意（[azd-infra-rules/references](skills/azd-infra-rules/references/azd-infra-rules.md) の「App Service Python の可観測性」を参照）
+3. **アプリコード** — 上記 2 つを除外できてから疑う

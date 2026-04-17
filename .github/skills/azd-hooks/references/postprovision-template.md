@@ -92,9 +92,26 @@ GRANT ALL PRIVILEGES ON DATABASE "{escaped_database_name}" TO "{escaped_identity
 """
 
 
-def execute_sql_via_cli(server_name: str, pg_admin_login_name: str, sql: str) -> None:
+def execute_sql_via_cli(
+    resource_group: str,
+    server_name: str,
+    pg_admin_login_name: str,
+    sql: str,
+) -> None:
     az = resolve_command("az")
     token = get_access_token()
+    # `az postgres flexible-server execute` は実行ホスト IP を自動許可しない。
+    # enableDatabasePublicAccess=true でも一時ファイアウォール規則が必要。
+    current_ip = get_current_ipv4()
+    firewall_rule_name = f"temp-postprovision-cli-{int(time.time())}"
+
+    run([
+        az, "postgres", "flexible-server", "firewall-rule", "create",
+        "--resource-group", resource_group,
+        "--name", server_name,
+        "--rule-name", firewall_rule_name,
+        "--start-ip-address", current_ip, "--end-ip-address", current_ip,
+    ])
 
     with tempfile.NamedTemporaryFile("w", suffix=".sql", encoding="utf-8", delete=False) as sql_file:
         sql_file.write(sql)
@@ -114,6 +131,12 @@ def execute_sql_via_cli(server_name: str, pg_admin_login_name: str, sql: str) ->
             os.unlink(sql_file_path)
         except FileNotFoundError:
             pass
+        run([
+            az, "postgres", "flexible-server", "firewall-rule", "delete",
+            "--resource-group", resource_group,
+            "--name", server_name,
+            "--rule-name", firewall_rule_name, "--yes",
+        ], check=False)
 
 
 def execute_sql_via_psql(
@@ -164,7 +187,7 @@ def main() -> None:
     sql = build_sql(managed_identity_name, postgres_database_name)
 
     try:
-        execute_sql_via_cli(server_name, pg_admin_login_name, sql)
+        execute_sql_via_cli(resource_group, server_name, pg_admin_login_name, sql)
     except subprocess.CalledProcessError:
         if private_networking_enabled:
             print(
