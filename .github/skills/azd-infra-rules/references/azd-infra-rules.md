@@ -342,6 +342,26 @@ output managedIdentityName string = managedIdentity.name
 output MANAGED_IDENTITY_NAME string = resources.outputs.managedIdentityName
 ```
 
+## 診断設定を追加する前の事前確認
+
+`Microsoft.Insights/diagnosticSettings` は拡張リソースのため、**Bicep ビルド（`az bicep build`）・ARM テンプレート検証・What-If では親リソースの適合性を検知できない**。対象 RP がカテゴリを公開していない場合、実デプロイ時に初めて `ResourceTypeNotSupported` で失敗する。
+
+**典型的な非対応リソース**:
+
+- `Microsoft.Network/privateEndpoints` — 診断カテゴリなし（NIC 側で取る）
+- `Microsoft.Network/privateDnsZones` — 非対応
+- `Microsoft.Storage/storageAccounts` 本体 — サブリソース（`blobServices` 等）で個別に設定する
+
+**手順**:
+
+1. 診断設定を Bicep に書く前に [Supported categories for Azure Monitor resource logs](https://learn.microsoft.com/azure/azure-monitor/essentials/resource-logs-categories) で対象リソース種別の掲載を確認する
+2. 掲載されていない場合は診断設定を付けない。代替手段（NIC、NSG Flow Logs、Network Watcher、上位/サブリソースでの設定等）を検討する
+3. 迷ったら dev / poc 環境に先に当てて RP の応答で確認する（検証用リソースグループを小さく回すほうが What-If に頼るより確実）
+
+**静的に検知できない理由**:
+
+`Microsoft.Insights/diagnosticSettings` は `scope: 任意の ARM リソース` を受け付ける拡張リソース。Bicep コンパイラは ARM スキーマだけを検証し、親 RP が `GET /providers/microsoft.insights/diagnosticSettingsCategories` で何を返すかは知らない。適合性は RP が実行時に決める。
+
 ## ログ取り込みコストの最適化
 
 ログの取り込みコスト削減が要件にある場合に検討する項目をまとめる。コスト要件がない場合はこのセクションの適用は不要。
