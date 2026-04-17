@@ -15,6 +15,7 @@ GitHub Copilot CLI が Azure のライフサイクル全体（設計・構築・
 | [Azure Developer CLI (azd)](https://learn.microsoft.com/ja-jp/azure/developer/azure-developer-cli/install-azd) | デプロイ | `azd version` |
 | [uv](https://docs.astral.sh/uv/getting-started/installation/) | Python スクリプト実行 | `uv --version` |
 | [PostgreSQL クライアント (psql)](https://www.postgresql.org/download/) | PostgreSQL ユーザー作成 | `psql --version` |
+| Azure CLI 拡張 `rdbms-connect` | `postprovision` フックが `az postgres flexible-server execute` で Entra プリンシパルを作成するために使用 | `az extension show --name rdbms-connect --query version -o tsv` |
 | [draw.io Desktop](https://github.com/jgraph/drawio-desktop) | 構成図の編集・画像エクスポート | `drawio --version`（Windows: `& "C:\Program Files\draw.io\draw.io.exe" --version`） |
 
 ### 環境によって追加で必要なツール
