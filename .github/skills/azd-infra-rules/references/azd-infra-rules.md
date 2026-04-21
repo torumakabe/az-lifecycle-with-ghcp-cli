@@ -249,13 +249,24 @@ FastAPI (ASGI) は自動検出されないため、`appCommandLine` で明示的
 
 #### 正しい起動コマンド
 
-**方法1: gunicorn 経由（推奨）** — gunicorn はランタイムイメージにプリインストール済みのため直接呼び出せる。PYTHONPATH 経由で venv の `uvicorn.workers` を import できる。
+**方法1: gunicorn 経由（推奨）** — gunicorn はランタイムイメージにプリインストール済みのため直接呼び出せる。PYTHONPATH 経由で venv の worker クラスを import できる。
 
 ```bicep
 siteConfig: {
-  appCommandLine: 'gunicorn -w 2 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 main:app'
+  appCommandLine: 'gunicorn -w 2 -k uvicorn_worker.UvicornWorker -b 0.0.0.0:8000 main:app'
 }
 ```
+
+```toml
+# pyproject.toml
+dependencies = [
+    "uvicorn[standard]>=0.32",
+    "uvicorn-worker>=0.2",  # uvicorn 0.30+ で uvicorn.workers は削除されたため必須
+    "gunicorn>=23.0",
+]
+```
+
+> **注意**: worker クラスは `uvicorn_worker.UvicornWorker`（アンダースコア、pip 名はハイフンの `uvicorn-worker`）。古い `uvicorn.workers.UvicornWorker` を指定すると起動時に `class uri 'uvicorn.workers.UvicornWorker' invalid or not found` で失敗する。
 
 **方法2: `python -m` 経由** — `python -m` は sys.path（PYTHONPATH を含む）からモジュールを検索するため動作する。
 
