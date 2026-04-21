@@ -49,6 +49,12 @@ description: "azd 前提の IaC ルール。Bicep、azure.yaml、hooks をまた
 
 詳細は [references/azd-infra-rules.md](references/azd-infra-rules.md) の「App Service Python の可観測性」セクションを参照。
 
+## App Service で FastAPI を起動する (gunicorn + uvicorn worker)
+
+- **uvicorn worker は `uvicorn-worker` パッケージを使う** — uvicorn 0.30+ で `uvicorn.workers` モジュールが削除済。`appCommandLine` は `-k uvicorn_worker.UvicornWorker`（アンダースコア区切り）とし、`pyproject.toml` の依存に `uvicorn-worker>=0.2` を追加する。古い `uvicorn.workers.UvicornWorker` を指定すると `class uri ... invalid or not found` で起動失敗する
+
+詳細と `python -m uvicorn` 代替案は [references/azd-infra-rules.md](references/azd-infra-rules.md) の「起動コマンド (`appCommandLine`)」セクションを参照。
+
 ## App Service のセキュリティ必須設定
 
 - **SCM / FTP 基本認証を無効化する** — azd は Entra ID 認証でデプロイするため、発行資格情報（基本認証）は不要。`basicPublishingCredentialsPolicies` で `scm` と `ftp` の両方を `allow: false` に設定すること。`ftpsState: 'Disabled'` だけでは SCM 基本認証は無効にならない（独立した制御）
