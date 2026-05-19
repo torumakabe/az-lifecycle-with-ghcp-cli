@@ -4,8 +4,8 @@
     "postToolUse": [
       {
         "type": "command",
-        "bash": "uv run .github/hooks/scripts/post-edit-lint.py",
-        "powershell": "uv run .github/hooks/scripts/post-edit-lint.py",
+        "bash": "uv run .github/hooks/scripts/post-edit-quality-feedback.py",
+        "powershell": "uv run .github/hooks/scripts/post-edit-quality-feedback.py",
         "timeoutSec": 30
       }
     ]
