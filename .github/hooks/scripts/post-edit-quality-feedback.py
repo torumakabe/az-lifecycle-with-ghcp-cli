@@ -22,6 +22,14 @@ from shutil import which
 COMMAND_TIMEOUT_SEC = 20
 MAX_OUTPUT_CHARS = 1600
 MAX_CONTEXT_CHARS = 4000
+MAX_BICEP_WARNINGS = 10
+
+# `az bicep build` の stderr から、コード診断ではなくツール側の通知
+# (CLI アップグレード案内など) として除外したい行のサブストリング。
+IGNORE_BICEP_NOTICE_PATTERNS: tuple[str, ...] = (
+    "A new Bicep release is available",
+    "Upgrade now by running",
+)
 
 
 @dataclass(frozen=True)
@@ -199,6 +207,45 @@ def process_python(path: Path) -> list[str]:
     return messages
 
 
+def _is_bicep_notice(line: str) -> bool:
+    return any(pattern in line for pattern in IGNORE_BICEP_NOTICE_PATTERNS)
+
+
+def extract_bicep_warnings(result: CommandResult) -> list[str]:
+    """`az bicep build` 成功時の stderr から `Warning` 診断行を抽出する。
+
+    CLI アップグレード案内などのツール側通知は除外し、ユーザーが対処
+    すべきコード診断のみエージェントに伝える。
+    """
+
+    warnings: list[str] = []
+    for raw_line in result.stderr.splitlines():
+        line = raw_line.strip()
+        if not line or "Warning" not in line:
+            continue
+        if _is_bicep_notice(line):
+            continue
+        warnings.append(line)
+
+    if len(warnings) <= MAX_BICEP_WARNINGS:
+        return warnings
+
+    truncated = warnings[:MAX_BICEP_WARNINGS]
+    remaining = len(warnings) - MAX_BICEP_WARNINGS
+    truncated.append(f"(+{remaining} more)")
+    return truncated
+
+
+def warnings_message(path: Path, warnings: list[str]) -> str:
+    joined = "\n".join(warnings)
+    summary = (
+        joined
+        if len(joined) <= MAX_OUTPUT_CHARS
+        else f"{joined[:MAX_OUTPUT_CHARS].rstrip()}..."
+    )
+    return f"Bicep build warnings for `{path}`:\n{summary}"
+
+
 def process_bicep(path: Path) -> list[str]:
     before = path.read_bytes()
     messages: list[str] = []
@@ -213,6 +260,10 @@ def process_bicep(path: Path) -> list[str]:
         )
         if build_result.failed:
             messages.append(failure_message(path, build_result))
+        else:
+            warnings = extract_bicep_warnings(build_result)
+            if warnings:
+                messages.append(warnings_message(path, warnings))
 
     if path.exists() and path.read_bytes() != before:
         messages.append(file_changed_message(path))
